@@ -62,7 +62,7 @@ export class NotificationService implements OnApplicationBootstrap {
   ) {
     const userCounts = await this.UserRepository.fetchCounts(filter);
 
-    let chunkCount = Math.ceil(userCounts / 1000);
+    let chunkCount = Math.ceil(userCounts / 5000);
 
     for (let i = 0; i < chunkCount; i++) {
       let users = await this.UserRepository.fetchUsersByFilter(filter, i);

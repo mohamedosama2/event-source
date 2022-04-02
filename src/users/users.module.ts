@@ -1,5 +1,6 @@
 import {
   CacheModule,
+  forwardRef,
   Module,
   UnprocessableEntityException,
 } from '@nestjs/common';
@@ -16,6 +17,7 @@ import { UploadCloudinary } from 'src/utils/services/upload-cloudinary';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { UserRepository } from './users.repository';
 import { cacheOperationsModule } from 'src/cache/cache.module';
+import { RateModule } from 'src/rate/rate.module';
 
 @Module({
   imports: [
@@ -34,6 +36,7 @@ import { cacheOperationsModule } from 'src/cache/cache.module';
       useClass: UploadCloudinary,
       inject: [ConfigService],
     }),
+    forwardRef(() => RateModule),
   ],
   controllers: [UsersController],
   providers: [UsersService, UserRepository],

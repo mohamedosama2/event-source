@@ -77,10 +77,10 @@ export class User {
   })
   username: string;
 
-  @Prop()
+  @Prop(String)
   password: string;
 
-  @Prop({ default: false })
+  @Prop({ default: true })
   enabled: boolean;
 
   @Prop()
@@ -94,6 +94,9 @@ export class User {
 
   @Prop({ required: true, type: String, enum: Object.values(UserRole) })
   role: UserRole;
+
+  @Prop(Number)
+  rating?:number;
 
   @Prop(
     raw([

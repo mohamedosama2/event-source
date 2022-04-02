@@ -38,6 +38,8 @@ import { Teacher } from './models/teacher.model';
 import { FilterQueryOptionsUser } from './dto/filterQueryOptions.dto';
 import { UserRepository } from './users.repository';
 import { Constants } from 'src/utils/constants';
+import { CreateRateDto } from 'src/rate/dto/create-rate.dto';
+import { RateService } from 'src/rate/rate.service';
 
 @ApiBearerAuth()
 @ApiTags('USERS')
@@ -45,9 +47,28 @@ import { Constants } from 'src/utils/constants';
 export class UsersController {
   constructor(
     private readonly usersService: UsersService,
+    private readonly rateService: RateService,
     private readonly UserRepository: UserRepository,
     @Inject(REQUEST) private readonly req: Record<string, unknown>,
   ) {}
+
+  /*   @Roles(UserRole.STUDENT) */
+  @Post('/rate/:id')
+  async addRate(
+    @Body() createRateDto: CreateRateDto,
+    @Param() { id }: ParamsWithId,
+    @AuthUser() me: UserDocument,
+  ) {
+    return await this.rateService.create(createRateDto, 'users', id, me._id);
+  }
+
+  @Get('/rates/:id')
+  async getAllRates(
+    @Param() { id }: ParamsWithId,
+    @Query() PaginationParams: PaginationParams,
+  ) {
+    return await this.rateService.fetchAllRates(PaginationParams, 'users', id);
+  }
 
   // @Roles(UserRole.STUDENT)
   // @CacheKey(Constants.GET_POSTS_CACHE_KEY)
