@@ -23,6 +23,9 @@ import { User, UserDocument, UserRole, UserSchema } from './models/_user.model';
 import * as _ from 'lodash';
 import { UserRepository } from './users.repository';
 import { cacheOperationsService } from 'src/cache/cache-operations.service';
+import { VersionedAggregateRoot } from 'src/shared/domain/aggregate-root';
+import { EventPublisher } from '@nestjs/cqrs';
+import { v4 as uuidv4 } from 'uuid';
 
 function randomInRange(from: number, to: number) {
   var r = Math.random();
@@ -30,8 +33,13 @@ function randomInRange(from: number, to: number) {
 }
 
 @Injectable()
-export class UsersService {
-  constructor(private readonly userRepository: UserRepository) {}
+export class UsersService extends VersionedAggregateRoot {
+  constructor(
+    private readonly userRepository: UserRepository,
+    private readonly eventPublisher: EventPublisher,
+  ) {
+    super();
+  }
 
   async findAll(
     queryFiltersAndOptions: FilterQueryOptionsUser,
@@ -55,15 +63,26 @@ export class UsersService {
     const user = await this.userRepository.updateOne(filter, updateUserData);
     return user;
   }
-
   async getProfile(me: UserDocument): Promise<UserDocument> {
     return me;
   }
 
-  async createUser(
-    createUserData: CreateQuery<UserDocument>,
-  ): Promise<UserDocument> {
-    return await this.userRepository.create(createUserData);
+  async createUser(createUserData): Promise<UserDocument> {
+    const newDocument = await this.userRepository.create(createUserData);
+    this.eventPublisher.mergeObjectContext(this);
+    this.apply({
+      ...newDocument,
+      meta: {
+        id: uuidv4(),
+        version: this.version,
+        modelName: 'User',
+        type: 'insertion',
+        methodName: 'create',
+        param1: createUserData,
+      },
+    });
+    this.commit();
+    return newDocument;
   }
 
   async changePassword(

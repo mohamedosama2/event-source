@@ -12,6 +12,8 @@ import { CacheConfigService } from './cache/cacheConfigService';
 import { cacheOperationsModule } from './cache/cache.module';
 import { NotificationModule } from './notification/notification.module';
 import { RateModule } from './rate/rate.module';
+import { SharedModule } from './shared/shared.module';
+import { CqrsModule } from '@nestjs/cqrs';
 @Module({
   imports: [
     ConfigModule.forRoot(),
@@ -21,7 +23,10 @@ import { RateModule } from './rate/rate.module';
     PhoneConfirmationModule,
     ChatModule,
     NotificationModule,
+    CqrsModule.forRoot(),
     RateModule,
+    SharedModule,
+
     // MessageQueueModule,
     // cacheOperationsModule,
   ],

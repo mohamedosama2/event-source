@@ -1,4 +1,5 @@
 import { NotFoundException } from '@nestjs/common';
+import { EventBus, EventPublisher } from '@nestjs/cqrs';
 import * as _ from 'lodash';
 import {
   CreateQuery,
@@ -11,22 +12,61 @@ import {
   PaginateResult,
   QueryOptions,
 } from 'mongoose';
+import { VersionedAggregateRoot } from 'src/shared/domain/aggregate-root';
+import { v4 as uuidv4 } from 'uuid';
 
 type TDocument<T> = T & Document;
-export abstract class BaseAbstractRepository<T> {
+export abstract class BaseAbstractRepository<T> extends VersionedAggregateRoot {
   private model: Model<TDocument<T>>;
+  private eventBus: EventBus;
+  private eventPublisher: EventPublisher;
 
-  protected constructor(model: Model<TDocument<T>>) {
+  constructor(
+    model?: Model<TDocument<T>>,
+    eventBus?: EventBus,
+    eventPublisher?: EventPublisher,
+  ) {
+    super();
     this.model = model;
+    this.eventBus = eventBus;
+    this.eventPublisher = eventPublisher;
   }
 
   public async create(data: CreateQuery<TDocument<T>>): Promise<TDocument<T>> {
     const newDocument = new this.model(data).save();
+    // this.eventPublisher.mergeObjectContext()
+    // newDocument.publish("Hello")
+
     return newDocument;
   }
-
   public async createDoc(data: T): Promise<TDocument<T>> {
-    const newDocument = new this.model(data).save();
+    const newDocument = await new this.model(data).save();
+    this.eventPublisher.mergeObjectContext(this);
+    this.apply({
+      ...newDocument,
+      meta: {
+        id: uuidv4(),
+        version: this.version,
+        modelName: this.model.modelName,
+        type: 'insertOne',
+      },
+    });
+    this.commit();
+    return newDocument;
+  }
+  public async insertMany(data) {
+    const newDocument = await this.model.insertMany(data);
+    this.eventPublisher.mergeObjectContext(this);
+    this.apply({
+      ...newDocument,
+      meta: {
+        id: uuidv4(),
+        version: this.version,
+        modelName: this.model.modelName,
+        type: 'insertMany',
+      },
+    });
+    this.commit();
     return newDocument;
   }
 

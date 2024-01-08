@@ -41,7 +41,7 @@ import { Constants } from 'src/utils/constants';
 import { CreateRateDto } from 'src/rate/dto/create-rate.dto';
 import { RateService } from 'src/rate/rate.service';
 
-@ApiBearerAuth()
+// @ApiBearerAuth()
 @ApiTags('USERS')
 @Controller('users')
 export class UsersController {
@@ -51,6 +51,19 @@ export class UsersController {
     private readonly UserRepository: UserRepository,
     @Inject(REQUEST) private readonly req: Record<string, unknown>,
   ) {}
+
+  @Public()
+  @Post('lato')
+  async insertyion() {
+    return await this.usersService.createUser({
+      phone: '+201021219333',
+      username: 'momaoomaa',
+      password: '11112222',
+      // email:"lato@gmail.com",
+      role: UserRole.STUDENT,
+      enabled:true
+    });
+  }
 
   /*   @Roles(UserRole.STUDENT) */
   @Post('/rate/:id')

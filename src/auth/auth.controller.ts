@@ -40,9 +40,9 @@ export class AuthController {
   @Post('/signup')
   async register(@Body() RegisterDto: RegisterDto): Promise<StudentDocument> {
     let user = await this.authService.register(RegisterDto);
-    await this.phoneConfirmationService.sendSMS({
+/*     await this.phoneConfirmationService.sendSMS({
       phone: RegisterDto.phone,
-    });
+    }); */
     return user;
   }
 

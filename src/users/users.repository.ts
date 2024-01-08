@@ -2,12 +2,30 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { FilterQuery, Model } from 'mongoose';
 import { BaseAbstractRepository } from 'src/utils/base.abstract.repository';
-import { User, UserDocument } from './models/_user.model';
+import { User, UserDocument, UserRole } from './models/_user.model';
+import { EventBus, EventPublisher } from '@nestjs/cqrs';
+
 
 @Injectable()
 export class UserRepository extends BaseAbstractRepository<User> {
-  constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {
-    super(userModel);
+  constructor(
+    @InjectModel(User.name) private userModel: Model<UserDocument>,
+    eventBus: EventBus, // Inject the event bus
+    eventPublisher: EventPublisher,
+  ) {
+    super(userModel, eventBus, eventPublisher);
+  }
+  // @SaveFunctionBody
+  async insertyion() {
+    return this.insertMany([
+      {
+        phone: '+201019369021',
+        username: 'momaoomaa',
+        password: '11112222',
+        // email:"lato@gmail.com",
+        role: UserRole.STUDENT,
+      },
+    ]);
   }
 
   async fetchUsersByFilter(
